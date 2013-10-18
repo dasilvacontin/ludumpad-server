@@ -5,7 +5,6 @@ function Channel (socket, channel) {
 	this.name = channel;
 	this.gamepads = new HashList ();
 	this.socket = socket;
-	this.socket.emit('openChannelCallback', StatusCode.OK);
 	this.socket.on('packetToGamepads', function (data) { //{t:TPYE, p:p, g:gidlist}
 		var gidlist = data.g;
 		for (var i = 0; i < gidlist.length; ++i) {

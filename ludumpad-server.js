@@ -1,4 +1,22 @@
-var io = require('socket.io').listen(4242),
+function getIPAddress() {
+  var interfaces = require('os').networkInterfaces();
+  for (var devName in interfaces) {
+    var iface = interfaces[devName];
+
+    for (var i = 0; i < iface.length; i++) {
+      var alias = iface[i];
+      if (alias.family === 'IPv4' && alias.address !== '127.0.0.1' && !alias.internal)
+        return alias.address;
+    }
+  }
+
+  return '0.0.0.0';
+}
+
+var localIP = getIPAddress();
+
+var port = 4242;
+var io = require('socket.io').listen(port),
 	Gamepad = require('./Gamepad'),
 	Channel = require('./Channel'),
 	StatusCode = require('./StatusCode'),
@@ -18,11 +36,13 @@ function getGamepad (socket) {
 }
 
 io.sockets.on('connection', function (socket) {
+	console.log("Socket connection!");
 
-	socket.on('openChannel', function (channelID) {
-		if (channelHash.get(channelID)) return socket.emit('openChannelCallback', StatusCode.ChannelAlreadyExists);
+	socket.on('openChannel', function (channelID) { // {channelID, adress}
+		if (channelHash.get(channelID)) return socket.emit('openChannelCallback', {statusCode:StatusCode.ChannelAlreadyExists, localIP:localIP});
 		var channel = new Channel (socket, channelID);
 		channelHash.push(channel);
+		socket.emit('openChannelCallback', {statusCode:StatusCode.OK, localIP:localIP});
 
 		socket.on('disconnect', function () {
 			channel.gamepads.forEach(function (gamepad) {
@@ -58,4 +78,4 @@ io.sockets.on('connection', function (socket) {
 
 });
 
-console.log("ludumpad-server is online!\n");
+console.log("ludumpad-server is listening on port "+port+"!\n");
