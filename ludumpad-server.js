@@ -14,6 +14,7 @@ function getIPAddress() {
 }
 
 var localIP = getIPAddress();
+console.log("Local IP is "+localIP);
 
 var port = 4242;
 var io = require('socket.io').listen(port),
